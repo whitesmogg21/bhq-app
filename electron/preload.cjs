@@ -21,7 +21,8 @@ window.addEventListener('DOMContentLoaded', () => {
   
   // Create and add the logo image
   const logoImage = document.createElement('img');
-  logoImage.src = 'app://logo.png'; // This path will need to be adjusted
+  // logoImage.src = 'app://logo.png'; // This path will need to be adjusted
+  logoImage.src = 'sentia.png'; 
   logoImage.alt = 'App Logo';
   logoImage.style.maxWidth = '200px'; // Adjust size as needed
   

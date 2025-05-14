@@ -32,6 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useFullscreen } from "@/hooks/use-fullscreen";
+import { paginationUtil } from "@/utils/paginationUtil";
 
 interface QuestionLibraryProps {
   qbanks: QBank[];
@@ -70,6 +71,9 @@ const QuestionLibrary = ({ qbanks }: QuestionLibraryProps) => {
   const [selectedFilterTags, setSelectedFilterTags] = useState<string[]>([]);
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [pageNumber, setPageNumber] = useState<number>(1);
+
+  const ROWS_PER_PAGE = 5;
 
   useEffect(() => {
     initializeMetrics();
@@ -484,6 +488,8 @@ const QuestionLibrary = ({ qbanks }: QuestionLibraryProps) => {
     }
   };
 
+  const paginatedQuestions = paginationUtil(sortedQuestions, ROWS_PER_PAGE) || [];
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -784,7 +790,7 @@ const QuestionLibrary = ({ qbanks }: QuestionLibraryProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedQuestions.map((question) => (
+            {paginatedQuestions[pageNumber-1]?.map((question) => (
               <TableRow key={question.id}>
                 <TableCell>
                   <input
@@ -824,6 +830,32 @@ const QuestionLibrary = ({ qbanks }: QuestionLibraryProps) => {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Pagination  */}
+       <div className="flex items-center justify-end space-x-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPageNumber(prev=>prev>1?prev-1:1)}
+          disabled={pageNumber===1}
+        >
+          Previous
+        </Button>
+
+        {/* Details  Start*/}
+        <div className="flex p-2">
+          <p><strong>{pageNumber}</strong> out of <strong>{paginatedQuestions.length}</strong></p>
+        </div>
+        {/* Details End  */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPageNumber(prev=>prev<paginatedQuestions.length?prev+1:prev)}
+          disabled={pageNumber === paginatedQuestions.length}
+        >
+          Next
+        </Button>
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { paginationUtil } from "@/utils/paginationUtil";
 
 interface MediaLibraryProps {
   qbanks: QBank[];
@@ -36,6 +37,9 @@ const MediaLibrary = ({ qbanks }: MediaLibraryProps) => {
   const [showTagFilterModal, setShowTagFilterModal] = useState(false);
   const [tagSearchQuery, setTagSearchQuery] = useState("");
   const [selectedFilterTags, setSelectedFilterTags] = useState<string[]>([]);
+  const [pageNumber, setPageNumber] = useState<number>(1);
+
+  const ROWS_PER_PAGE = 5;
 
   useEffect(() => {
     const savedMedia = localStorage.getItem('mediaLibrary');
@@ -46,7 +50,7 @@ const MediaLibrary = ({ qbanks }: MediaLibraryProps) => {
 
   useEffect(() => {
     const extractedMedia = new Map<string, Set<string>>();
-    
+
     qbanks.forEach(qbank => {
       qbank.questions.forEach(question => {
         const matches = question.question.match(/\/([^\/]+\.(?:png|jpg|jpeg|gif))/g);
@@ -169,10 +173,12 @@ const MediaLibrary = ({ qbanks }: MediaLibraryProps) => {
 
   const filteredMedia = mediaItems.filter(item =>
     (selectedFilterTags.length === 0 || item.tags.some(tag => selectedFilterTags.includes(tag))) &&
-    (searchQuery === "" || 
+    (searchQuery === "" ||
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
   );
+
+  const paginatedMedia = paginationUtil(filteredMedia, ROWS_PER_PAGE) || [];
 
   return (
     <div className="p-6">
@@ -257,7 +263,7 @@ const MediaLibrary = ({ qbanks }: MediaLibraryProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredMedia.map((item) => (
+            {paginatedMedia[pageNumber-1]?.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>
                   <img
@@ -302,6 +308,34 @@ const MediaLibrary = ({ qbanks }: MediaLibraryProps) => {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination  Start*/}
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPageNumber(prev => prev > 1 ? prev - 1 : 1)}
+          disabled={pageNumber === 1}
+        >
+          Previous
+        </Button>
+
+        {/* Details  Start*/}
+        <div className="flex p-2">
+          <p><strong>{pageNumber}</strong> out of <strong>{paginatedMedia.length}</strong></p>
+        </div>
+        {/* Details End  */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPageNumber(prev => prev < paginatedMedia.length ? prev + 1 : prev)}
+          disabled={pageNumber === paginatedMedia.length}
+        >
+          Next
+        </Button>
+      </div>
+      {/* Pagination  Ends*/}
+
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
